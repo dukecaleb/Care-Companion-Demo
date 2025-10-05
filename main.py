@@ -207,7 +207,7 @@ RECIPES = [
      "blurb":"Low-sodium, potassium-rich power bowl aligned with DASH guidelines.",
      "cook":[("Quinoa (2m)",120,"Rinse quinoa; add 2:1 water; bring to boil."),("Simmer (6m)",360,"Reduce heat; simmer 12-15m total; fluff."),("Roast Veg (5m)",300,"Roast mixed veg at 425°F with olive oil & pepper."),("Vinaigrette (2m)",120,"Whisk citrus + oil + mustard; no salt add."),("Assemble (2m)",120,"Quinoa + veg + vinaigrette; top with herbs.")]
     },
-    {"id":"r3","title":"Chicken & Veggie Stir-Fry (No Added Sugar Sauce)","tags":["Low Sugar","diabetes","High Fiber"],"video":"https://www.youtube.com/watch?v=3GwjfUFyY6M","minutes":20,"cals":390,"sodium_mg":320,"added_sugar_g":0,
+    {"id":"r3","title":"Chicken & Veggie Stir-Fry (No Added Sugar Sauce)","tags":["Low Sugar","diabetes","High Fiber"],"video":"https://www.youtube.com/watch?v=3GwjfUFy6M","minutes":20,"cals":390,"sodium_mg":320,"added_sugar_g":0,
      "blurb":"Quick skillet stir-fry with balanced carbs and smart protein—diabetes-friendly.",
      "cook":[("Prep (2m)",120,"Slice chicken; chop veg."),("Sear (3m)",180,"Sear chicken; remove. Stir-fry veg 2–3m."),("Sauce (2m)",120,"Soy-lite + ginger + garlic + lemon; no sugar."),("Combine (2m)",120,"Return chicken; toss; serve with brown rice (optional).")]
     },
@@ -496,7 +496,8 @@ with tab_diet:
             with col1: st.caption(f"{r['minutes']} min")
             with col2: st.caption(f"{r['cals']} cal")
             with col3: st.caption(" • ".join(r["tags"]))
-            with col4: st.link_button(t("video"), r["video"], key=f"video_{r['id']}")
+            # NOTE: link_button does not accept key -> removed
+            with col4: st.link_button(t("video"), r["video"])
             colN, colM, colK = st.columns([2,2,2])
             with colN:
                 if st.button(f"{t('add_meal')} — {r['id']}", key=f"add_{r['id']}", use_container_width=True):
@@ -667,7 +668,8 @@ with tab_ex:
             if c1.button(t("start_indoor"), key="start_indoor_btn"):
                 add_xp(12)
                 st.success("Indoor routine started — +12 XP!")
-            c2.link_button(t("open_video"), "https://www.youtube.com/results?search_query=low+impact+indoor+cardio", key="open_guided_video")
+            # NOTE: link_button does not accept key -> removed
+            c2.link_button(t("open_video"), "https://www.youtube.com/results?search_query=low+impact+indoor+cardio")
     else:
         for i, p in enumerate(parks):
             with st.container(border=True):
@@ -676,12 +678,14 @@ with tab_ex:
                 if c1.button(f"Start (+12 XP) — {p}", key=f"start_{i}"):
                     add_xp(12)
                     st.success("Challenge started — +12 XP!")
-                c2.link_button(t("directions"), "https://maps.google.com", key=f"dir_{i}")
+                # Make URL unique per park (no key; link_button doesn't support it)
+                c2.link_button(t("directions"), f"https://www.google.com/maps/search/{urllib.parse.quote(p)}")
 
 with tab_resources:
     st.subheader(t("hub"))
     for i, (name, href) in enumerate(RESOURCE_LINKS):
-        st.link_button(name, href, key=f"res_{i}", use_container_width=True)
+        # NOTE: link_button does not accept key -> removed
+        st.link_button(name, href, use_container_width=True)
     st.caption(t("not_med"))
 
 with tab_share:
