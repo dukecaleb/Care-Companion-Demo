@@ -1,14 +1,26 @@
-
 import os, time, urllib.parse, uuid, json
 import requests
 import streamlit as st
 
-# Optional: Supabase persistence
-SUPABASE_URL = st.secrets.get("SUPABASE_URL", os.environ.get("SUPABASE_URL"))
-SUPABASE_KEY = st.secrets.get("SUPABASE_KEY", os.environ.get("SUPABASE_KEY"))
-OPENWEATHER_API_KEY = st.secrets.get("OPENWEATHER_API_KEY", os.environ.get("OPENWEATHER_API_KEY"))
-MAPBOX_TOKEN = st.secrets.get("MAPBOX_TOKEN", os.environ.get("MAPBOX_TOKEN"))
+# ---------------------------
+# SAFE secrets/env loader (prevents StreamlitSecretNotFoundError)
+# ---------------------------
+def secret_or_env(key: str):
+    v = os.environ.get(key)
+    if v:
+        return v
+    try:
+        return st.secrets[key]  # will raise if secrets.toml isn’t present
+    except Exception:
+        return None
 
+# Optional integrations (auto-detected)
+SUPABASE_URL        = secret_or_env("SUPABASE_URL")
+SUPABASE_KEY        = secret_or_env("SUPABASE_KEY")
+OPENWEATHER_API_KEY = secret_or_env("OPENWEATHER_API_KEY")
+MAPBOX_TOKEN        = secret_or_env("MAPBOX_TOKEN")
+
+# Optional: Supabase persistence
 SUPABASE = None
 if SUPABASE_URL and SUPABASE_KEY:
     try:
@@ -47,18 +59,18 @@ T = {
     "recipes": "Recommended recipes",
     "video": "▶️ Video",
     "add_meal": "Add to Meal Plan (+15 XP)",
-    "cook_along": "Cook‑Along (10‑min)",
+    "cook_along": "Cook-Along (10-min)",
     "save": "Save",
     "coach_cook": "👩‍🍳 Coach Cook",
     "step_done": "Step Done (+2 XP)",
-    "cancel": "Cancel Cook‑Along",
-    "cook_done": "Cook‑along complete! +10 XP",
+    "cancel": "Cancel Cook-Along",
+    "cook_done": "Cook-along complete! +10 XP",
     "quiz": "Daily Lesson & Quiz",
     "submit": "Submit",
     "next": "Next Question",
     "streak": "Quiz Streak",
     "boss": "Boss Level",
-    "boss_unlock": "Get a 5‑day quiz streak to unlock the Boss Level.",
+    "boss_unlock": "Get a 5-day quiz streak to unlock the Boss Level.",
     "boss_ready": "Unlocked! Scenario: Dining Out with Diabetes & Hypertension",
     "boss_submit": "Submit Boss Level",
     "boss_win": "Boss defeated! +100 XP — Badge unlocked: Restaurant Strategist",
@@ -71,7 +83,7 @@ T = {
     "gc2": "GeoChallenges 2.0",
     "adverse": "When weather/AQI is adverse, we suggest indoor routines to protect lungs & keep streaks alive.",
     "zip": "Enter ZIP code",
-    "indoor": "Indoor Cardio Routine (8‑min)",
+    "indoor": "Indoor Cardio Routine (8-min)",
     "start_indoor": "Start Indoor Routine (+12 XP)",
     "open_video": "Open Guided Video",
     "park_challenge": "Challenge: Walk 2 laps or jog 10 min.",
@@ -79,7 +91,7 @@ T = {
     "hub": "Resource Hub",
     "not_med": "Educational links; not medical advice. Talk to your clinician for personal care.",
     "share_hdr": "Care Circle Sharing",
-    "share_cap": "Generate a read‑only URL for caregivers. Choose what to include:",
+    "share_cap": "Generate a read-only URL for caregivers. Choose what to include:",
     "inc_act": "Include Activity",
     "inc_edu": "Include Education",
     "inc_diet": "Include Diet",
@@ -202,8 +214,8 @@ RECIPES = [
 ]
 
 QUIZ_BANK = [
-    {"id":"q1","condition":"hypertension","prompt":"Which habit most effectively lowers blood pressure over time?","options":["Adding more table salt","Regular brisk walking and a low-sodium diet","Drinking only fruit juice","Taking double meds on weekends"],"answer":1,"fact":"Aerobic activity + DASH/low-sodium pattern are first‑line lifestyle strategies for BP management."},
-    {"id":"q2","condition":"diabetes","prompt":"For type 2 diabetes, what helps stabilize post‑meal glucose most?","options":["Skipping breakfast","Balancing protein/fiber with carbs and portion awareness","Only eating fruit","Eliminating all carbs"],"answer":1,"fact":"Protein and fiber slow glucose absorption. Portion and carb quality matter more than total avoidance."},
+    {"id":"q1","condition":"hypertension","prompt":"Which habit most effectively lowers blood pressure over time?","options":["Adding more table salt","Regular brisk walking and a low-sodium diet","Drinking only fruit juice","Taking double meds on weekends"],"answer":1,"fact":"Aerobic activity + DASH/low-sodium pattern are first-line lifestyle strategies for BP management."},
+    {"id":"q2","condition":"diabetes","prompt":"For type 2 diabetes, what helps stabilize post-meal glucose most?","options":["Skipping breakfast","Balancing protein/fiber with carbs and portion awareness","Only eating fruit","Eliminating all carbs"],"answer":1,"fact":"Protein and fiber slow glucose absorption. Portion and carb quality matter more than total avoidance."},
 ]
 
 GEO_PARKS = {
@@ -341,9 +353,7 @@ if st.session_state.simple:
     st.markdown(
         """
         <style>
-        html, body, [class*="css"]  {
-          font-size: 18px !important;
-        }
+        html, body, [class*="css"]  { font-size: 18px !important; }
         .stButton>button { padding: 0.9rem 1.1rem; font-size: 1.05rem; }
         .stRadio>div>label { padding: 0.2rem 0; }
         .st-emotion-cache-1dp5vir { filter: contrast(1.2); }
@@ -369,12 +379,12 @@ share_include_meals = params.get("m", ["0"])[0] == "1"
 
 # Sidebar
 with st.sidebar:
-    st.toggle(t("simple"), key="simple")
-    st.selectbox(t("lang"), options=list(LANGS.keys()), format_func=lambda k: LANGS[k], key="lang")
+    st.toggle(T[st.session_state.get("lang","en")]["simple"], key="simple")
+    st.selectbox(T[st.session_state.get("lang","en")]["lang"], options=list(LANGS.keys()), format_func=lambda k: LANGS[k], key="lang")
     if SUPABASE:
         st.success("Supabase: connected")
     else:
-        st.info("Supabase: off (session‑only)")
+        st.info("Supabase: off (session-only)")
     if OPENWEATHER_API_KEY:
         st.success("OpenWeather: on")
     else:
@@ -394,7 +404,7 @@ with col2:
         st.toggle(t("caregiver"), key="caregiver")
         st.text_input(t("name"), key="name")
     else:
-        st.info("Care Circle View — read‑only summary")
+        st.info("Care Circle View — read-only summary")
 with col3:
     st.metric(t("level"), level_from_xp(st.session_state.xp))
     st.metric(t("xp"), st.session_state.xp)
@@ -408,7 +418,7 @@ if is_care_view:
         st.subheader("Activity")
         pct = min(100, round(100*st.session_state.steps/max(1, st.session_state.goal)))
         st.progress(pct/100, text=f"{st.session_state.steps:,} / {st.session_state.goal:,} steps today")
-        st.caption("7‑day avg steps: 7,350 (demo)")
+        st.caption("7-day avg steps: 7,350 (demo)")
     if share_include_lessons:
         st.subheader("Education")
         st.write("Lessons completed this week: 5 (demo)")
@@ -562,7 +572,7 @@ with tab_edu:
     st.subheader(t("boss"))
     if st.session_state.boss_unlocked and not st.session_state.boss_cleared:
         st.info(t("boss_ready"))
-        boss_q = "You're at a restaurant. Which order best balances sodium + post‑meal glucose?"
+        boss_q = "You're at a restaurant. Which order best balances sodium + post-meal glucose?"
         boss_opts = [
             "Soup of the day + white rice + soda",
             "Grilled salmon, steamed veg, brown rice, water with lemon",
@@ -652,7 +662,7 @@ with tab_ex:
 
     if suggest_indoor:
         with st.container(border=True):
-            st.markdown(f"**{t('indoor')}**  \nLow‑impact sequence suitable for hypertension/COPD: marching in place, sit‑to‑stands, wall pushups, slow step‑touch.")
+            st.markdown(f"**{t('indoor')}**  \nLow-impact sequence suitable for hypertension/COPD: marching in place, sit-to-stands, wall pushups, slow step-touch.")
             c1, c2 = st.columns(2)
             if c1.button(t("start_indoor"), key="start_indoor_btn"):
                 add_xp(12)
@@ -683,7 +693,7 @@ with tab_share:
     q = {"care":"1","s":"1" if inc_steps else "0","l":"1" if inc_lessons else "0","m":"1" if inc_meals else "0"}
     share_suffix = "?" + urllib.parse.urlencode(q)
     st.code(share_suffix, language="text")
-    st.caption("Append this to your deployed app URL to share a read‑only view.")
+    st.caption("Append this to your deployed app URL to share a read-only view.")
     if SUPABASE and st.button("Save Share Prefs", key="save_share_prefs"):
         SUPABASE.table("cc_shares").insert({
             "user_id": get_user_id(),
